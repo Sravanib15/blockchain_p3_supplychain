@@ -1,4 +1,37 @@
+### UML Diagrams
+# Activity Diagram
+![truffle test](images/ActivityDiagram.jpg)
+
+# Sequence Diagram
+![truffle test](SequenceDiagram.jpg)
+
+# State Diagram
+![truffle test](images/StateDiagram.jpg)
+
+# Data Model
+![truffle test](images/DataModel.jpg)
 # Supply chain & data auditing
+
+
+### Versions
+
+Truffle v5.4.3 (core: 5.4.3)
+Solidity v0.5.16 (solc-js)
+Node v16.6.0
+Web3.js v1.5.0
+
+### Truffle-config
+
+  development: {
+      host: "127.0.0.1",     // Localhost (default: none)
+      port: 9545,            // Standard Ethereum port (default: none)
+      network_id: "*",       // Any network (default: none)
+     }
+### libraries 
+
+None
+
+
 
 This repository containts an Ethereum DApp that demonstrates a Supply Chain flow between a Seller and Buyer. The user story is similar to any commonly used supply chain process. A Seller can add items to the inventory system stored in the blockchain. A Buyer can purchase such items from the inventory system. Additionally a Seller can mark an item as Shipped, and similarly a Buyer can mark an item as Received.
 

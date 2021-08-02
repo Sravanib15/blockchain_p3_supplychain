@@ -1,9 +1,16 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.16;
+
+import '../coffeecore/Ownable.sol';
+import '../coffeeaccesscontrol/ConsumerRole.sol';
+import '../coffeeaccesscontrol/RetailerRole.sol';
+import '../coffeeaccesscontrol/DistributorRole.sol';
+import '../coffeeaccesscontrol/FarmerRole.sol';
+
 // Define a contract 'Supplychain'
-contract SupplyChain {
+contract SupplyChain is Ownable, ConsumerRole, DistributorRole, FarmerRole, RetailerRole{
 
   // Define 'owner'
-  address owner;
+  address payable owner;
 
   // Define a variable called 'upc' for Universal Product Code (UPC)
   uint  upc;
@@ -49,7 +56,7 @@ contract SupplyChain {
     State   itemState;  // Product State as represented in the enum above
     address distributorID;  // Metamask-Ethereum address of the Distributor
     address retailerID; // Metamask-Ethereum address of the Retailer
-    address consumerID; // Metamask-Ethereum address of the Consumer
+    address payable consumerID; // Metamask-Ethereum address of the Consumer
   }
 
   // Define 8 events with the same 8 state values and accept 'upc' as input argument
@@ -153,35 +160,38 @@ contract SupplyChain {
   }
 
   // Define a function 'harvestItem' that allows a farmer to mark an item 'Harvested'
-  function harvestItem(uint _upc, address _originFarmerID, string _originFarmName, string _originFarmInformation, string  _originFarmLatitude, string  _originFarmLongitude, string  _productNotes) public 
+  function harvestItem(
+    uint _upc, 
+    address _originFarmerID, 
+    string memory _originFarmName, 
+    string memory _originFarmInformation, 
+    string memory _originFarmLatitude, 
+    string memory _originFarmLongitude, 
+    string memory _productNotes) public 
   {
     // Add the new item as part of Harvest
-    Item item;
-    item.upc = _upc;
-    item.originFarmerID = _originFarmerID;
-    item.originFarmName = _originFarmName;
-    item.originFarmInformation = _originFarmInformation;
-    item.originFarmLatitude = _originFarmLatitude;
-    item.originFarmLongitude = _originFarmLongitude;
-    item.productNotes = _productNotes;
-    item.itemState = defaultState;
-    item.sku = sku;
-    item.owner = owner;
-    item.productID = _upc + "" +  sku;
-    item.upc = _upc;
-    item.upc = _upc;
-    
-    items[_upc] = item;
+    items[_upc].sku = sku;
+    items[_upc].upc = upc;
+    items[_upc].ownerID = _originFarmerID;
+    items[_upc].originFarmerID = _originFarmerID;
+    items[_upc].originFarmName = _originFarmName;
+    items[_upc].originFarmInformation = _originFarmInformation;
+    items[_upc].originFarmLatitude = _originFarmLatitude;
+    items[_upc].originFarmLongitude = _originFarmLongitude;
+    items[_upc].productNotes = _productNotes;
+    items[_upc].itemState = defaultState;
+    items[_upc].productID = _upc + sku;
+
     // Increment sku
     sku = sku + 1;
     // Emit the appropriate event
-    event Harvested(uint upc);
+    emit Harvested(_upc);
   }
 
   // Define a function 'processtItem' that allows a farmer to mark an item 'Processed'
   function processItem(uint _upc) public 
   // Call modifier to check if upc has passed previous supply chain stage
-  Harvested(_upc)
+  harvested(_upc)
   // Call modifier to verify caller of this function
   verifyCaller(items[_upc].ownerID)
   {
@@ -194,7 +204,7 @@ contract SupplyChain {
   // Define a function 'packItem' that allows a farmer to mark an item 'Packed'
   function packItem(uint _upc) public 
   // Call modifier to check if upc has passed previous supply chain stage
-  Processed(_upc)
+  processed(_upc)
   // Call modifier to verify caller of this function
   verifyCaller(items[_upc].ownerID)
   
@@ -208,12 +218,13 @@ contract SupplyChain {
   // Define a function 'sellItem' that allows a farmer to mark an item 'ForSale'
   function sellItem(uint _upc, uint _price) public 
   // Call modifier to check if upc has passed previous supply chain stage
-  Packed(_upc);
+  packed(_upc)
   // Call modifier to verify caller of this function
   verifyCaller(items[_upc].ownerID)
   {
     // Update the appropriate fields
     items[_upc].productPrice = _price;
+    items[_upc].itemState = State.ForSale;
     // Emit the appropriate event
     emit ForSale(_upc);
   }
@@ -228,6 +239,7 @@ contract SupplyChain {
     paidEnough(items[_upc].productPrice)
     // Call modifer to send any excess ether back to buyer
     checkValue(_upc)
+  
     {
     
     // Update the appropriate fields - ownerID, distributorID, itemState
@@ -246,7 +258,7 @@ contract SupplyChain {
     // Call modifier to check if upc has passed previous supply chain stage
     sold(_upc)
     // Call modifier to verify caller of this function
-    verifyCaller(items[item].ownerID)
+    verifyCaller(items[_upc].ownerID)
     {
     // Update the appropriate fields
     items[_upc].itemState = State.Shipped;
@@ -293,16 +305,16 @@ contract SupplyChain {
   uint    itemUPC,
   address ownerID,
   address originFarmerID,
-  string  originFarmName,
-  string  originFarmInformation,
-  string  originFarmLatitude,
-  string  originFarmLongitude
+  string memory originFarmName,
+  string memory originFarmInformation,
+  string memory originFarmLatitude,
+  string memory originFarmLongitude
   ) 
   {
   // Assign values to the 8 parameters
   itemSKU = items[_upc].sku;
   itemUPC = items[_upc].upc;
-  ownerID = = items[_upc].ownerID;
+  ownerID = items[_upc].ownerID;
   originFarmerID = items[_upc].originFarmerID;
   originFarmName = items[_upc].originFarmName;
   originFarmInformation = items[_upc].originFarmInformation;
@@ -328,7 +340,7 @@ contract SupplyChain {
   uint    itemSKU,
   uint    itemUPC,
   uint    productID,
-  string  productNotes,
+  string  memory productNotes,
   uint    productPrice,
   uint    itemState,
   address distributorID,
@@ -342,7 +354,7 @@ contract SupplyChain {
   productID = items[_upc].productID;
   productNotes = items[_upc].productNotes;
   productPrice = items[_upc].productPrice;
-  itemState = items[_upc].itemState;
+  itemState = uint(items[_upc].itemState);
   distributorID = items[_upc].distributorID;
   retailerID = items[_upc].retailerID;
   consumerID = items[_upc].consumerID;

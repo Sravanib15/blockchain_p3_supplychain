@@ -1,3 +1,13 @@
+### Deployed contract
+
+https://rinkeby.etherscan.io/address/0x67F335C4d59649208dc361357970413086326150
+
+More details in - 
+![truffle test](DeployedContract.txt)
+
+
+
+
 ### UML Diagrams
 # Activity Diagram
 ![truffle test](images/ActivityDiagram.jpg)

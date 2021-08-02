@@ -45,6 +45,10 @@ The DApp User Interface when running should look like...
 
 ![truffle test](images/ftc_transaction_history.png)
 
+### Contract address in Rinkeby
+
+0x67F335C4d59649208dc361357970413086326150
+
 
 ## Getting Started
 
